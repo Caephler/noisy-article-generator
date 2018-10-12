@@ -54,15 +54,17 @@ class StainCache:
     self.get_stains()
     
   def get_stains(self):
+    files = []
     p = Path("./stains").glob("**/*.png")
-    files = [str(x) for x in p if x.is_file()]
+    files.extend([str(x) for x in p if x.is_file()])
+    p = Path("./stains").glob("**/*.jpg")
+    files.extend([str(x) for x in p if x.is_file()])
     for f in files:
-      self.cache[f] = Image.open(f)
       self.index_mapping.append(f)
 
   def get_stain(self, src):
-    if self.cache[src] != None:
-      return self.cache[src]
+    if self.cache.get(src) is not None:
+      return self.cache.get(src)
     img = Image.open(src) 
     self.cache[src] = img
     return img

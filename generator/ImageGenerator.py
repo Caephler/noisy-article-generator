@@ -6,6 +6,6 @@ class CanvasGenerator:
     self.canvas_size = canvas_size
     
   def generate_canvas(self):
-    img = Image.new('RGBA', self.canvas_size, color=(255, 255, 255))
+    img = Image.new('RGBA', self.canvas_size, color=(255, 255, 255, 255))
 
     return img

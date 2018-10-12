@@ -1,8 +1,8 @@
-from ImageGenerator import CanvasGenerator 
-from ClipartImprinter import ClipartInserter
-from TextImprinter import FontEngine, TextImprinter
-from Artifacter import Artifacter
-from Stainer import Stainer
+from .ImageGenerator import CanvasGenerator 
+from .ClipartImprinter import ClipartInserter
+from .TextImprinter import FontEngine, TextImprinter
+from .Artifacter import Artifacter
+from .Stainer import Stainer
 import lorem
 import numpy
 from pathlib import PurePath, Path
@@ -20,7 +20,8 @@ def generate(args):
   make_dirs()
 
   num_images = args.num_images
-  canvas_size = args.canvas
+  orig_canvas_size = args.canvas
+  canvas_size = (int(orig_canvas_size[0] * 1.2), int(orig_canvas_size[1] * 1.05))
   clipart_size_min = args.clipart_min
   clipart_size_max = args.clipart_max
   font_size_min = args.font_min
@@ -45,13 +46,16 @@ def generate(args):
     canvas = gen.generate_canvas()
     height = canvas.size[1]
 
+    # To prevent cutting off when rotating later on
+    x_offset = canvas.size[0] * 0.1
+
     y_offset = 0
 
     y_offset = txt_imp.imprint(
       canvas=canvas, 
       source=lorem.paragraph(), 
-      max_height=numpy.random.randint(height / 3, height / 2), 
-      offset=(0, y_offset)
+      max_height=numpy.random.randint(height / 5, height / 3), 
+      offset=(x_offset, y_offset)
     )
 
     image_size = numpy.random.randint(clipart_size_min, clipart_size_max + 1)
@@ -66,21 +70,28 @@ def generate(args):
     y_offset = txt_imp.imprint(
       canvas=canvas,
       source=lorem.paragraph(),
-      max_height=numpy.random.randint(50, 100),
-      offset=(0, y_offset)
+      max_height=numpy.random.randint(height / 5, height / 3),
+      offset=(x_offset, y_offset)
     )
 
+    clean_canvas = canvas.crop((0, 0, orig_canvas_size[0], orig_canvas_size[1]))
     p = PurePath("./out/clean").joinpath("{}.png".format(i))
-    canvas.save(str(p))
+    clean_canvas.save(str(p))
 
     # Staining starts
 
     num_stains = numpy.random.randint(stains_min, stains_max + 1)
-    stainer.stain(canvas=canvas, num_stains=num_stains)
+    canvas = stainer.stain(canvas=canvas, num_stains=num_stains)
     canvas = arti.blur(canvas)
-    canvas = arti.rotate(canvas, max_degree=3)
+    canvas = arti.rotate(canvas, max_degree=3.5)
+    bottom_canvas = gen.generate_canvas()
+    bottom_canvas.paste(canvas, (0, 0), canvas)
+    canvas = bottom_canvas
     canvas = arti.add_overlay(canvas)
+    canvas = arti.add_texture(canvas)
+
+    dirty_canvas = canvas.crop((0, 0, orig_canvas_size[0], orig_canvas_size[1]))
     p = PurePath("./out/dirty").joinpath("{}.png".format(i))
-    canvas.save(str(p))
+    dirty_canvas.save(str(p))
 
     bar.update(i)
