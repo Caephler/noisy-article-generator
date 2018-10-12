@@ -47,7 +47,7 @@ def generate(args):
     height = canvas.size[1]
 
     # To prevent cutting off when rotating later on
-    x_offset = canvas.size[0] * 0.1
+    x_offset = canvas.size[0] * (0.01 + (numpy.random.rand() * 0.04))
 
     y_offset = 0
 
@@ -81,9 +81,9 @@ def generate(args):
     # Staining starts
 
     num_stains = numpy.random.randint(stains_min, stains_max + 1)
-    canvas = stainer.stain(canvas=canvas, num_stains=num_stains)
     canvas = arti.blur(canvas)
     canvas = arti.rotate(canvas, max_degree=3.5)
+    canvas = stainer.stain(canvas=canvas, num_stains=num_stains)
     bottom_canvas = gen.generate_canvas()
     bottom_canvas.paste(canvas, (0, 0), canvas)
     canvas = bottom_canvas

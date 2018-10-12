@@ -2,6 +2,17 @@
 
 An image generator that generates pairs of images for machine learning purposes.
 
+# Sample Output
+
+| Clean | Dirty |
+|-------|-------|
+| ![clean-1](./sample-images/clean/7.png) | ![dirty-1](./sample-images/dirty/7.png) |
+| ![clean-2](./sample-images/clean/10.png) | ![dirty-2](./sample-images/dirty/10.png) |
+| ![clean-3](./sample-images/clean/17.png) | ![dirty-3](./sample-images/dirty/17.png) |
+| ![clean-4](./sample-images/clean/50.png) | ![dirty-4](./sample-images/dirty/50.png) |
+| ![clean-5](./sample-images/clean/62.png) | ![dirty-5](./sample-images/dirty/62.png) |
+| ![clean-6](./sample-images/clean/71.png) | ![dirty-6](./sample-images/dirty/71.png) |
+
 # Quick Start
 
 You must have Python 3.6 installed. Other Python 3 versions may not work as expected.

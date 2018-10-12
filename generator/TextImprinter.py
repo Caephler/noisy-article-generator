@@ -66,9 +66,10 @@ class TextImprinter:
     if max_height != None:
       # using max_height
       splits = self.get_line_splits(canvas, source)
+      x_offset = offset[0]
       y_offset = offset[1]
       for line in splits:
-        cv.text((0, y_offset), line, fill=(0, 0, 0), font=self.font_engine.writing_font)
+        cv.text((x_offset, y_offset), line, fill=(0, 0, 0), font=self.font_engine.writing_font)
         y_offset += self.get_font_height()
         if y_offset > max_height:
           break
