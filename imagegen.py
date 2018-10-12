@@ -1,52 +1,86 @@
-from ImageGenerator import CanvasGenerator, StainGenerator
-from ClipartImprinter import ClipartImprinter
+from ImageGenerator import CanvasGenerator 
+from ClipartImprinter import ClipartInserter
 from TextImprinter import FontEngine, TextImprinter
+from Artifacter import Artifacter
+from Stainer import Stainer
 import lorem
 import numpy
-from pathlib import PurePath
+from pathlib import PurePath, Path
+import progressbar
 
-NUM_IMAGES = 10
+def make_dirs():
+  if not Path("./out").exists():
+    Path("./out").mkdir()
+  if not Path("./out/clean").exists():
+    Path("./out/clean").mkdir()
+  if not Path("./out/dirty").exists():
+    Path("./out/dirty").mkdir()
 
-engine = FontEngine()
-txt_imp = TextImprinter(engine)
-gen = CanvasGenerator()
-gen.set_params(canvas_size=(200, 200))
-stain = StainGenerator()
-clipart = ClipartImprinter()
+def generate(args):
+  make_dirs()
 
-for i in range(NUM_IMAGES):
-  engine.load_random_font()
-  font_size = numpy.random.randint(10, 40)
-  engine.set_font_size(font_size)
-  canvas = gen.generate_canvas()
+  num_images = args.num_images
+  canvas_size = args.canvas
+  clipart_size_min = args.clipart_min
+  clipart_size_max = args.clipart_max
+  font_size_min = args.font_min
+  font_size_max = args.font_max
+  stains_min = args.stains_min
+  stains_max = args.stains_max
 
-  y_offset = txt_imp.imprint(canvas=canvas, source=lorem.paragraph(), max_lines=3, offset=(0, 0))
+  bar = progressbar.ProgressBar(max_value=num_images)
 
-  image_padding = 16
-  clipart.load_random_clipart()
-  y_offset = clipart.imprint(canvas, 
-    offset=(int(canvas.size[0] / 2) - 32, y_offset + image_padding),
-    size=(64, 64)
-  )
-  # y_offset += image_padding
+  engine = FontEngine()
+  txt_imp = TextImprinter(engine)
+  gen = CanvasGenerator(canvas_size)
+  stainer = Stainer()
+  clipart = ClipartInserter()
+  arti = Artifacter()
 
-  y_offset = txt_imp.imprint(
-    canvas=canvas,
-    source=lorem.paragraph(),
-    max_lines=3,
-    offset=(0, y_offset)
-  )
+  bar.update(0)
+  for i in range(num_images):
+    engine.load_random_font()
+    font_size = numpy.random.randint(font_size_min, font_size_max + 1)
+    engine.set_font_size(font_size)
+    canvas = gen.generate_canvas()
+    height = canvas.size[1]
 
-  p = PurePath("./out").joinpath("clean_{}.png".format(i))
-  canvas.save(str(p))
+    y_offset = 0
 
-  # Staining starts
+    y_offset = txt_imp.imprint(
+      canvas=canvas, 
+      source=lorem.paragraph(), 
+      max_height=numpy.random.randint(height / 3, height / 2), 
+      offset=(0, y_offset)
+    )
 
-  num_stains = numpy.random.randint(1, 3) # 1 to 2 stains
-  for j in range(num_stains):
-    stain.load_random_stain()
-    # Set opacity to 0.50 to 1.00
-    opacity = (50 + numpy.random.randint(51)) / 100 
-    canvas = stain.imprint(canvas=canvas, opacity=opacity)
-  p = PurePath("./out").joinpath("dirty_{}.png".format(i))
-  canvas.save(str(p))
+    image_size = numpy.random.randint(clipart_size_min, clipart_size_max + 1)
+
+    y_offset = clipart.imprint_with_probability(
+      canvas=canvas,
+      size=(image_size, image_size),
+      y_offset=y_offset,
+      probability=0.5
+    )
+
+    y_offset = txt_imp.imprint(
+      canvas=canvas,
+      source=lorem.paragraph(),
+      max_height=numpy.random.randint(50, 100),
+      offset=(0, y_offset)
+    )
+
+    p = PurePath("./out/clean").joinpath("{}.png".format(i))
+    canvas.save(str(p))
+
+    # Staining starts
+
+    num_stains = numpy.random.randint(stains_min, stains_max + 1)
+    stainer.stain(canvas=canvas, num_stains=num_stains)
+    canvas = arti.blur(canvas)
+    canvas = arti.rotate(canvas, max_degree=3)
+    canvas = arti.add_overlay(canvas)
+    p = PurePath("./out/dirty").joinpath("{}.png".format(i))
+    canvas.save(str(p))
+
+    bar.update(i)

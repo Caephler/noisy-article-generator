@@ -18,6 +18,4 @@ pip install pathlib
 
 # To start generation
 
-You may have to create a folder `out` in the root directory.
-Run `python imagegen.py`.
-To change the number of generated images, change `NUM_IMAGES` in `imagegen.py`
+Run `python generate.py`. The full list of arguments can be seen by entering the command `python generate.py -h`

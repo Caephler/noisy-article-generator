@@ -41,3 +41,32 @@ class ClipartImprinter:
     canvas.paste(clipart, offset, clipart)
 
     return offset[1] + size[1]
+
+  def imprint_left_align(self, canvas, size=(64, 64), y_offset=0, left_padding=0):
+    return self.imprint(canvas, size, (left_padding, y_offset))
+
+  def imprint_right_align(self, canvas, size=(64, 64), y_offset=0, right_padding=0):
+    canvas_width = canvas.size[0]
+    return self.imprint(canvas, size, (canvas_width - size[0] - right_padding, y_offset))
+
+  def imprint_center_align(self, canvas, size=(64, 64), y_offset=0):
+    canvas_width = canvas.size[0]
+    return self.imprint(canvas, size, (int(canvas_width / 2 - size[0] / 2), y_offset))
+
+class ClipartInserter:
+  def __init__(self, padding=16):
+    self.imprinter = ClipartImprinter()
+    self.padding = padding
+  
+  def imprint_with_probability(self, canvas, size, y_offset, probability=0.5):
+    n = numpy.random.random(1)[0]
+    if n >= probability:
+      self.imprinter.load_random_clipart()
+      imprint_type = numpy.random.randint(3)
+      if imprint_type == 0: # left align
+        return self.imprinter.imprint_left_align(canvas, size, y_offset + self.padding, 16)
+      elif imprint_type == 1: # center align
+        return self.imprinter.imprint_center_align(canvas, size, y_offset + self.padding)
+      elif imprint_type == 2:
+        return self.imprinter.imprint_right_align(canvas, size, y_offset + self.padding, 16)
+    return y_offset

@@ -58,14 +58,28 @@ class TextImprinter:
     
     return result
   
-  def imprint(self, canvas, source="", max_lines=3, offset=(0, 0)):
+  def imprint(self, canvas, source="", max_lines=3, max_height=None, offset=(0, 0)):
     cv = ImageDraw.Draw(canvas)
-    splits = self.get_line_splits(canvas, source)[:max_lines]
+    y_offset = 0
+    # max_height will take precedence, if max_height is set, we will use it instead
+    # of max_lines
+    if max_height != None:
+      # using max_height
+      splits = self.get_line_splits(canvas, source)
+      y_offset = offset[1]
+      for line in splits:
+        cv.text((0, y_offset), line, fill=(0, 0, 0), font=self.font_engine.writing_font)
+        y_offset += self.get_font_height()
+        if y_offset > max_height:
+          break
+    else:
+      # using max_lines
+      splits = self.get_line_splits(canvas, source)[:max_lines]
 
-    y_offset = offset[1]
-    for line in splits:
-      cv.text((0, y_offset), line, fill=(0, 0, 0), font=self.font_engine.writing_font)
-      y_offset += self.get_font_height()
+      y_offset = offset[1]
+      for line in splits:
+        cv.text((0, y_offset), line, fill=(0, 0, 0), font=self.font_engine.writing_font)
+        y_offset += self.get_font_height()
 
     return y_offset
     
