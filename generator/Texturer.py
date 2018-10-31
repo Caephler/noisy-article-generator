@@ -18,13 +18,16 @@ class TextureGenerator:
   def __init__(self):
     self.cache = TextureCache()
     self.current_texture = None
-  
+
   def load_random_texture(self):
     self.current_texture = self.cache.get_random_texture()
-  
+
   def imprint(self, canvas):
     original_texture = self.current_texture.copy()
     size = original_texture.size
+    while size[0] < canvas.size[0] or size[1] < canvas.size[1]:
+      original_texture = original_texture.resize((size[0] * 2, size[1] * 2))
+      size = original_texture.size
     start_x = int(numpy.random.rand() * (size[0] - canvas.size[0]))
     start_y = int(numpy.random.rand() * (size[1] - canvas.size[1]))
     coords = (start_x, start_y, start_x + canvas.size[0], start_y + canvas.size[1])
@@ -38,7 +41,7 @@ class TextureCache:
     self.cache = {}
     self.index_mapping = []
     self.get_textures()
-    
+
   def get_textures(self):
     files = []
     p = Path("./textures").glob("**/*.png")
@@ -51,10 +54,10 @@ class TextureCache:
   def get_texture(self, src):
     if self.cache.get(src) is not None:
       return self.cache.get(src)
-    img = Image.open(src) 
+    img = Image.open(src)
     self.cache[src] = img
     return img
-  
+
   def get_random_texture(self):
     choice = numpy.random.randint(len(self.index_mapping))
     f = self.index_mapping[choice]

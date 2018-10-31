@@ -12,7 +12,7 @@ class Artifacter:
     ]
     self.texturer = Texturer()
     pass
-  
+
   def blur(self, canvas, blur_radius=1):
     blur_radius = numpy.random.random() * blur_radius
     return canvas.filter(ImageFilter.GaussianBlur(blur_radius))

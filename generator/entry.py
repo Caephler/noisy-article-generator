@@ -14,6 +14,7 @@ def run():
   parser = argparse.ArgumentParser(description="Generates images")
   parser.add_argument("-n", "--num-images", type=int, help="The number of images to generate. Defaults to {}.".format(NUM_IMAGES), default=NUM_IMAGES)
   parser.add_argument("-c", "--canvas", type=int, help="The dimensions of the square canvas. Defaults to {}x{}.".format(CANVAS_SIZE[0], CANVAS_SIZE[1]), nargs=2, default=CANVAS_SIZE)
+  parser.add_argument("-d", "--dirty-only", help="You only want dirty images. Provide the input in in/*.png. Will ignore -n and -c.", action='store_true')
   parser.add_argument("--clipart-min", type=int, help="The minimum size of the cliparts inserted. Defaults to {}.".format(CLIPART_SIZE_MIN), default=CLIPART_SIZE_MIN)
   parser.add_argument("--clipart-max", type=int, help="THe maximum size of the cliparts inserted. Defaults to {}".format(CLIPART_SIZE_MAX), default=CLIPART_SIZE_MAX)
   parser.add_argument("--font-min", type=int, help="The minimum font size. Defaults to {}".format(FONT_SIZE_MIN), default=FONT_SIZE_MIN)
