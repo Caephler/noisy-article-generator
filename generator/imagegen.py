@@ -21,10 +21,7 @@ def generate(args):
   make_dirs()
 
   num_images = args.num_images
-  orig_canvas_size = args.canvas
-  canvas_size = (int(orig_canvas_size[0] * 1.2), int(orig_canvas_size[1] * 1.05))
-  clipart_size_min = args.clipart_min
-  clipart_size_max = args.clipart_max
+  canvas_size = args.canvas
   font_size_min = args.font_min
   font_size_max = args.font_max
   stains_min = args.stains_min
@@ -39,16 +36,11 @@ def generate(args):
   clipart = ClipartInserter()
   arti = Artifacter()
 
-  def dirty(canvas, i, name=None, crop=True):
+  def dirty(canvas, i, name=None):
     # Staining starts
     num_stains = numpy.random.randint(stains_min, stains_max + 1)
     canvas = arti.blur(canvas)
     # some lost corners
-    orig_size = canvas.size
-    expand_size = (int(canvas.size[0] * 1.12), int(canvas.size[1] * 1.12))
-    canvas = canvas.resize(expand_size)
-    canvas = arti.rotate(canvas, max_degree=3.5)
-    canvas = canvas.crop((int(orig_size[0] * 0.06), int(orig_size[1] * 0.06), orig_size[0], orig_size[1]))
     canvas = stainer.stain(canvas=canvas, num_stains=num_stains)
     bottom_canvas = Image.new('RGBA', canvas.size, color=(255, 255, 255, 255))
     bottom_canvas.paste(canvas, (0, 0), canvas)
@@ -56,9 +48,7 @@ def generate(args):
     canvas = arti.add_overlay(canvas)
     canvas = arti.add_texture(canvas)
     dirty_canvas = canvas
-    dirty_canvas.show()
-    if crop and name is not None:
-      dirty_canvas = canvas.crop((0, 0, orig_canvas_size[0], orig_canvas_size[1]))
+    # dirty_canvas.show()
     if name is None:
       p = PurePath("./out/dirty").joinpath("{}.png".format(i))
     else:
@@ -86,7 +76,10 @@ def generate(args):
 
   for i in range(num_images):
     engine.load_random_font()
-    font_size = numpy.random.randint(font_size_min, font_size_max + 1)
+    font_size = font_size_min
+    subtitle_font_size = int(font_size * 1)
+    title_font_size = int(font_size * 1)
+    small_font_size = int(font_size * 1)
     engine.set_font_size(font_size)
     canvas = gen.generate_canvas()
     height = canvas.size[1]
@@ -94,35 +87,86 @@ def generate(args):
     # To prevent cutting off when rotating later on
     x_offset = canvas.size[0] * (0.01 + (numpy.random.rand() * 0.04))
 
-    y_offset = 0
+    y_offset = int(0.02 * height + (height * (numpy.random.rand() * 0.08)))
 
+    # print title
+    engine.set_font_size(title_font_size)
+    y_offset = txt_imp.imprint_line_center(
+      canvas=canvas,
+      source=lorem.sentence()[:50],
+      y_offset=y_offset
+    )
+
+    # print subtitle
+    engine.set_font_size(subtitle_font_size)
+    y_offset = txt_imp.imprint_line_center(
+      canvas=canvas,
+      source = lorem.sentence()[:100],
+      y_offset=y_offset
+    )
+
+    # add linebreak
+    y_offset += font_size
+
+    # print paragraph
+    # print some text
+    engine.set_font_size(font_size)
     y_offset = txt_imp.imprint(
       canvas=canvas,
       source=lorem.paragraph(),
       max_height=numpy.random.randint(height / 5, height / 3),
       offset=(x_offset, y_offset)
     )
+    y_offset += font_size
 
-    image_size = numpy.random.randint(clipart_size_min, clipart_size_max + 1)
+    # center image with probability
+    should_have_image = numpy.random.rand() > 0.3
+    if should_have_image:
+      image_size = int(canvas.size[0] * (0.1 + (numpy.random.rand() * 0.2)))
+      y_offset = clipart.imprint_center(
+        canvas=canvas,
+        size=(image_size, image_size),
+        y_offset=y_offset)
+      # print caption
+      engine.set_font_size(small_font_size)
+      string = "Figure {num}. {descr}".format(num=numpy.random.randint(0, 10), descr=lorem.sentence())
+      y_offset = txt_imp.imprint_line_center(
+        canvas=canvas,
+        source=string,
+        y_offset=y_offset)
+      y_offset += small_font_size
 
-    y_offset = clipart.imprint_with_probability(
-      canvas=canvas,
-      size=(image_size, image_size),
-      y_offset=y_offset,
-      probability=0.5
-    )
+    while y_offset < canvas.size[1] * 0.95:
+      # print paragraph
+      # print some text
+      engine.set_font_size(font_size)
+      y_offset = txt_imp.imprint(
+        canvas=canvas,
+        source=lorem.paragraph() * 5,
+        max_lines=numpy.random.randint(2, 5),
+        offset=(x_offset, y_offset)
+      )
+      y_offset += font_size
+      should_have_image = numpy.random.rand() > 0.7
+      if should_have_image:
+        image_size = int(canvas.size[0] * (0.1 + (numpy.random.rand() * 0.2)))
+        y_offset = clipart.imprint_center(
+          canvas=canvas,
+          size=(image_size, image_size),
+          y_offset=y_offset)
+        # print caption
+        engine.set_font_size(small_font_size)
+        string = "Figure {num}. {descr}".format(num=numpy.random.randint(0, 10), descr=lorem.sentence())
+        y_offset = txt_imp.imprint_line_center(
+          canvas=canvas,
+          source=string,
+          y_offset=y_offset)
+        y_offset += small_font_size
 
-    y_offset = txt_imp.imprint(
-      canvas=canvas,
-      source=lorem.paragraph(),
-      max_height=numpy.random.randint(height / 5, height / 3),
-      offset=(x_offset, y_offset)
-    )
-
-    clean_canvas = canvas.crop((0, 0, orig_canvas_size[0], orig_canvas_size[1]))
+    clean_canvas = canvas
     p = PurePath("./out/clean").joinpath("{}.png".format(i))
     clean_canvas.save(str(p))
 
-    dirty(canvas)
+    dirty(canvas, i)
 
     bar.update(i)

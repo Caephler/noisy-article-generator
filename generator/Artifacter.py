@@ -30,5 +30,5 @@ class Artifacter:
     alpha = numpy.random.random() * 0.08
     return Image.blend(canvas, overlay, alpha)
 
-  def add_texture(self, canvas):
-    return self.texturer.texture(canvas)
+  def add_texture(self, canvas, probability=0.7):
+    return self.texturer.texture(canvas, 0.7)

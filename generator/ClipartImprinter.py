@@ -7,7 +7,7 @@ class ClipartCache:
     self.cache = {}
     self.index_mapping = []
     self.get_cliparts()
-  
+
   def get_cliparts(self):
     files = []
     p = Path("./clipart").glob("**/*.png")
@@ -23,7 +23,7 @@ class ClipartCache:
     img = Image.open(src)
     self.cache[src] = img
     return img
-  
+
   def get_random_clipart(self):
     choice = numpy.random.randint(len(self.index_mapping))
     f = self.index_mapping[choice]
@@ -36,7 +36,7 @@ class ClipartImprinter:
 
   def load_random_clipart(self):
     self.current_clipart = self.cache.get_random_clipart()
-  
+
   def imprint(self, canvas, size=(64, 64), offset=(0, 0)):
     clipart = self.current_clipart.copy()
     clipart.thumbnail(size)
@@ -59,7 +59,7 @@ class ClipartInserter:
   def __init__(self, padding=16):
     self.imprinter = ClipartImprinter()
     self.padding = padding
-  
+
   def imprint_with_probability(self, canvas, size, y_offset, probability=0.5):
     n = numpy.random.random(1)[0]
     if n >= probability:
@@ -72,3 +72,7 @@ class ClipartInserter:
       elif imprint_type == 2:
         return self.imprinter.imprint_right_align(canvas, size, y_offset + self.padding, 16)
     return y_offset
+
+  def imprint_center(self, canvas, size, y_offset):
+    self.imprinter.load_random_clipart()
+    return self.imprinter.imprint_center_align(canvas, size, y_offset + self.padding) + self.padding
